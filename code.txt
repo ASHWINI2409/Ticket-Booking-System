@@ -1,0 +1,188 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+const int SIZE = 5;
+
+class Passenger {
+public:
+    static long long pnrCounter;
+    long long pnr;
+    string name;
+    int age;
+    string gender;
+    string source;
+    string destination;
+
+    Passenger() {
+        pnr = ++pnrCounter;
+    }
+
+    void inputDetails() {
+        cin.ignore();
+        cout << "Enter Name: ";
+        getline(cin, name);
+
+        cout << "Enter Age: ";
+        cin >> age;
+        cin.ignore();
+
+        cout << "Enter Gender: ";
+        getline(cin, gender);
+
+        cout << "Enter Source: ";
+        getline(cin, source);
+
+        cout << "Enter Destination: ";
+        getline(cin, destination);
+    }
+
+    void displayDetails() {
+        cout << "\nPNR Number: " << pnr << endl;
+        cout << "Name: " << name
+             << "\nAge: " << age
+             << "\nGender: " << gender
+             << "\nFrom: " << source
+             << "\nTo: " << destination << endl;
+    }
+};
+
+long long Passenger::pnrCounter = 5689475122;
+
+class TicketQueue {
+private:
+    Passenger queue[SIZE];
+    int front, rear;
+
+public:
+    TicketQueue() {
+        front = -1;
+        rear = -1;
+    }
+
+    bool isFull() {
+        return (rear + 1) % SIZE == front;
+    }
+
+    bool isEmpty() {
+        return front == -1;
+    }
+
+    void enqueue() {
+        if (isFull()) {
+            cout << "\nQueue is full! Cannot book more tickets.\n";
+            return;
+        }
+
+        Passenger p;
+        p.inputDetails();
+
+        if (isEmpty()) {
+            front = rear = 0;
+        } else {
+            rear = (rear + 1) % SIZE;
+        }
+
+        queue[rear] = p;
+        cout << "\nTicket booked successfully! PNR Number: " << p.pnr << endl;
+    }
+
+    void dequeue() {
+        if (isEmpty()) {
+            cout << "\nQueue is empty! No booking to cancel.\n";
+            return;
+        }
+
+        cout << "\nSelect the booking to cancel:\n";
+        int i = front;
+        int count = 1;
+        do {
+            cout << count << ". PNR " << queue[i].pnr << " - "
+                 << queue[i].name << " (" << queue[i].source << " TO " << queue[i].destination << ")\n";
+            if (i == rear) break;
+            i = (i + 1) % SIZE;
+            count++;
+        } while (true);
+
+        cout << "Enter the number of the booking to cancel (1 to " << count << "): ";
+        int choice;
+        cin >> choice;
+
+        if (choice < 1 || choice > count) {
+            cout << "Invalid choice!\n";
+            return;
+        }
+
+        int cancelIndex = (front + choice - 1) % SIZE;
+        cout << "\nCancelling booking of passenger: " << queue[cancelIndex].name
+             << " (PNR: " << queue[cancelIndex].pnr << ")\n";
+
+        int idx = cancelIndex;
+        while (idx != rear) {
+            int next = (idx + 1) % SIZE;
+            queue[idx] = queue[next];
+            idx = next;
+        }
+
+        if (front == rear) {
+            front = rear = -1;
+        } else {
+            rear = (rear - 1 + SIZE) % SIZE;
+            if ((rear + 1) % SIZE == front) {
+                front = rear = -1;
+            }
+        }
+
+        cout << "Booking cancelled successfully.\n";
+    }
+
+    void display() {
+        if (isEmpty()) {
+            cout << "\nNo bookings to show.\n";
+            return;
+        }
+
+        cout << "\nList of Booked Tickets:\n";
+        int i = front;
+        while (true) {
+            queue[i].displayDetails();
+            if (i == rear)
+                break;
+            i = (i + 1) % SIZE;
+        }
+    }
+};
+
+int main() {
+    TicketQueue tq;
+    int choice;
+
+    do {
+        cout << "\n===== Ticket Booking System =====\n";
+        cout << "1. Book Ticket\n";
+        cout << "2. Cancel Ticket\n";
+        cout << "3. Show All Bookings\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                tq.enqueue();
+                break;
+            case 2:
+                tq.dequeue();
+                break;
+            case 3:
+                tq.display();
+                break;
+            case 4:
+                cout << "Exiting... Thank you!\n";
+                break;
+            default:
+                cout << "Invalid choice! Try again.\n";
+        }
+    } while (choice != 4);
+
+    return 0;
+}
